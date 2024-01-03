@@ -2,16 +2,16 @@
 
 [![License](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 
-<p align="center" markdown="1">
-
 [English](#English) | [简体中文](#简体中文) | [繁體中文](#繁體中文) | [日本語](#日本語)
-
-</p>
 
 ## English
 
 hex2flag is a Free Speech Flag Generator tool that allows you to create flags using hexadecimal RGB numbers. It was
 inspired by creative methods used to disguise keys, such as transforming hexadecimal keys into colorful flags.
+
+This hex2flag tool has been developed with the deep involvement of OpenAI's GPT model. GPT has played a significant role
+in providing language assistance, code suggestions, and overall guidance during the development process. We express our
+gratitude to the OpenAI team for their remarkable contribution to this project.
 
 ### Usage
 
@@ -37,6 +37,9 @@ This project is licensed under the [GNU General Public License (GPL)](LICENSE.md
 hex2flag 是一个自由言论旗帜生成器工具，允许您使用十六进制 RGB 数字创建旗帜。它受到了将密钥伪装的创造性方法的启发，
 例如将十六进制密钥转化为丰富多彩的旗帜。
 
+这个 hex2flag 工具是通过 OpenAI 的 GPT 模型深度参与开发的。在开发过程中，GPT 在提供语言协助、
+代码建议以及整体指导方面发挥了重要作用。我们对 OpenAI 团队在这个项目中的卓越贡献表示感谢。
+
 ### 使用方法
 
 1.  输入十六进制密钥，例如 `09F911029D74E35BD84156C5635688C0`。
@@ -60,11 +63,14 @@ hex2flag 是一个自由言论旗帜生成器工具，允许您使用十六进�
 hex2flag 是一個自由言論旗幟生成器工具，允許您使用十六進制 RGB 數字創建旗幟。它受到了將密鑰偽裝的創造性方法的啟發，
 例如將十六進制密鑰轉化為豐富多彩的旗幟。
 
+這個 hex2flag 工具是透過 OpenAI 的 GPT 模型深度參與開發的。在開發過程中，GPT 在提供語言協助、
+代碼建議以及整體指導方面發揮了重要作用。我們對 OpenAI 團隊在這個項目中的卓越貢獻表示感謝。
+
 ### 使用方法
 
-1. 輸入十六進制密鑰，例如 `09F911029D74E35BD84156C5635688C0`。
-2. 點擊「生成」按鈕以使用提供的十六進制 RGB 數字生成旗幟。
-3. 下載以 SVG 格式生成的旗幟。
+1.  輸入十六進制密鑰，例如 `09F911029D74E35BD84156C5635688C0`。
+2.  點擊「生成」按鈕以使用提供的十六進制 RGB 數字生成旗幟。
+3.  下載以 SVG 格式生成的旗幟。
 
 ### 貢獻
 
@@ -82,6 +88,10 @@ hex2flag 言論自由旗生成器をご利用いただきありがとうござ�
 
 hex2flag は、16 進数 RGB 数字を使用して旗を作成できる言論自由旗生成ツールです。
 16 進数の鍵をカラフルな旗に変換する創造的な方法に触発されました。
+
+この hex2flag ツールは OpenAI の GPT モデルが深く関与して開発されました。開発プロセス全体で言語のサポート、
+コードの提案、そして総合的なガイダンスを提供するなど、GPTは重要な役割を果たしました。
+OpenAI チームにはこのプロジェクトへの素晴らしい貢献に対して感謝の意を表します。
 
 ### 使い方
 
