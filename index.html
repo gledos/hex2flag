@@ -63,6 +63,13 @@
 
     <button id="formatBtn" onclick="formatHex()">${languages[currentLanguage].formatBtn}</button>
 
+    <select id="flagRatioSelector">
+        <option value="flag_2_3">2:3 → (300×200 px)</option>
+        <option value="flag_3_4">3:4 → (400×300 px)</option>
+        <option value="avatar">avatar → (640×640 px)</option>
+        <option value="flag_2_3_td">2:3 ↓ (300×200 px)</option>
+    </select>
+
     <p id="formattedHex"></p>
     <hr>
     <div id="flag-container">
@@ -70,7 +77,7 @@
     </div>
 
     <!-- 下载按钮 -->
-    <button id="downloadBtn" onclick="downloadSVG()">${languages[currentLanguage].downloadBtn}</button>
+    <button id="downloadBtn" onclick="downloadSVG()" style="display: none;">${languages[currentLanguage].downloadBtn}</button>
 
     <!-- 添加简介 -->
     <div id="introContainer">
@@ -81,6 +88,7 @@
 
     <script>
         // 获取或设置暗色模式状态
+        // Get or set dark mode status
         function getDarkMode() {
             return localStorage.getItem("darkMode") === "true";
         }
@@ -90,6 +98,7 @@
         }
 
         // 切换暗色模式
+        // Toggle dark mode
         function toggleDarkMode() {
             const body = document.body;
             const darkMode = getDarkMode();
@@ -98,6 +107,7 @@
         }
 
         // 初始化页面时自动适配暗色模式
+        // Automatically adapt to dark mode when initializing the page
         function autoAdjustDarkMode() {
             const body = document.body;
             const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -112,33 +122,86 @@
         }
 
         // 在页面加载时调用 autoAdjustDarkMode
+        // Call autoAdjustDarkMode on page load
         document.addEventListener("DOMContentLoaded", function () {
             autoAdjustDarkMode();
         });
 
+        const flagInfo = {
+            flag_2_3: {direction: "lr", width: 300,height: 200,textX: 290,textY: 190,fontSize: 15,fontFamily: "monospace",textAnchor: "end",alignmentBaseline: "bottom"},
+            flag_3_4: {direction: "lr", width: 400,height: 300,textX: 390,textY: 290,fontSize: 22,fontFamily: "monospace",textAnchor: "end",alignmentBaseline: "bottom"},
+            avatar: {direction: "lr", width: 640,height: 640,textX: 320, textY: 320, fontSize: 80,fontFamily: "monospace",textAnchor: "middle", alignmentBaseline: "middle"},
+            flag_2_3_td: {direction: "td", width: 300,height: 200,textX: 290,textY: 190,fontSize: 15,fontFamily: "monospace",textAnchor: "end",alignmentBaseline: "bottom"},
+        };
+
+        let currentFlagType = "flag_2_3"; // 默认选择旗帜（2:3）
+                                          // Default selection flag (2:3)
+
         // 格式化 Hex、生成 SVG 旗帜并显示
+        // Format Hex, generate SVG flag, and display
         function formatHex() {
             const hexInput = document.getElementById("hexInput").value.replace(/[\s\-#+,:]/g, "");
             const formattedHexDiv = document.getElementById("formattedHex");
             const flagDiv = document.getElementById("flag");
             const flagColors = [];
             let flagText = null;
-            let textColor = "#000000";  // 默认文本颜色为黑色
+            let textColor = "#000000";
 
             // 验证输入是否为有效的十六进制数字
+            // Validate if the input is a valid hexadecimal number
             if (!hexInput.match(/^0x[0-9A-Fa-f]+$/) && !hexInput.match(/^[0-9A-Fa-f]+$/)) {
                 alert("Please enter a valid hexadecimal number.");
                 return;
             }
 
             // 移除可能的 "0x" 前缀
+            // Remove possible "0x" prefix
             const sanitizedHex = hexInput.startsWith("0x") ? hexInput.slice(2) : hexInput;
 
+            // 检查Hex是否足够长
+            // Check if Hex is long enough
+            if (sanitizedHex.length < 6) {
+                alert("Hexadecimal input should be at least 6 characters long.");
+                return;
+            }
+
+            const flagType = document.getElementById("flagRatioSelector").value;
+            currentFlagType = flagType;
+
+            // 获取当前选中旗帜类型的参数
+            // Get parameters for the currently selected flag type
+            const currentFlagInfo = flagInfo[currentFlagType];
+
             // 计算颜色块的数量和宽度
+            // Calculate the number of color blocks and width
             const numColors = sanitizedHex.length / 6;
-            const colorWidth = 300 / (Math.floor(sanitizedHex.length / 6));
+            var colorWidth = 1;
+            switch (currentFlagInfo.direction) {
+                case 'lr':
+                colorWidth = currentFlagInfo.width / (Math.floor(numColors));
+                break;
+
+                case 'lr':
+                colorWidth = currentFlagInfo.width / (Math.floor(numColors));
+                break;
+
+                case 'td':
+                colorWidth = currentFlagInfo.height / (Math.floor(numColors));
+                break;
+
+                case 'dt':
+                colorWidth = currentFlagInfo.height / (Math.floor(numColors));
+                break;
+
+                default:
+                colorWidth = currentFlagInfo.width / (Math.floor(numColors));
+                break;
+            }
+
+            // const colorWidth = currentFlagInfo.width / (Math.floor(sanitizedHex.length / 6));
 
             // 提取颜色块和 flagText
+            // Extract color blocks and flagText
             for (let i = 0; i < numColors; i++) {
                 const startIdx = i * 6;
                 const endIdx = startIdx + 6;
@@ -152,30 +215,71 @@
             }
 
             // 计算最后一个颜色块的亮度
+            // Calculate brightness of the last color block
             if (flagColors.length > 0) {
                 const lastColor = flagColors[flagColors.length - 1];
                 textColor = getTextColor(lastColor);
             }
 
             // 生成 SVG 内容
-            const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" height="200px" width="300px"
-id="freeSpeechFlag">${flagColors.map((color, index) => `<rect x="${index * colorWidth}" width="${colorWidth}px"
-height="200px" fill="#${color}"/>`).join('')}<text x="290" y="190" font-size="15" font-family="monospace"
-text-anchor="end" alignment-baseline="bottom" fill="${textColor}">${flagText || ""}</text></svg>`;
+            // Generate SVG content
+            var svgContent;
+            switch (currentFlagInfo.direction) {
+                case 'lr':
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" height="${currentFlagInfo.height}px" width="${currentFlagInfo.width}px" id="freeSpeechFlag">
+${flagColors.map((color, index) => `<rect x="${index * colorWidth}" width="${colorWidth}px" height="${currentFlagInfo.height}" fill="#${color}"/>`).join('')}
+<text x="${currentFlagInfo.textX}px" y="${currentFlagInfo.textY}px" font-size="${currentFlagInfo.fontSize}px"
+font-family="${currentFlagInfo.fontFamily}" text-anchor="${currentFlagInfo.textAnchor}"
+alignment-baseline="${currentFlagInfo.alignmentBaseline}" fill="${textColor}">${flagText || ""}</text></svg>`;
+                break;
+
+                case 'lr':
+
+                break;
+
+                case 'td':
+                svgContent = `<svg xmlns="http://www.w3.org/2000/svg" height="${currentFlagInfo.height}px" width="${currentFlagInfo.width}px" id="freeSpeechFlag">
+${flagColors.map((color, index) => `<rect y="${index * colorWidth}" width="${currentFlagInfo.width}" height="${colorWidth}px" fill="#${color}"/>`).join('')}
+<text x="${currentFlagInfo.textX}px" y="${currentFlagInfo.textY}px" font-size="${currentFlagInfo.fontSize}px"
+font-family="${currentFlagInfo.fontFamily}" text-anchor="${currentFlagInfo.textAnchor}"
+alignment-baseline="${currentFlagInfo.alignmentBaseline}" fill="${textColor}">${flagText || ""}</text></svg>`;
+                break;
+
+                case 'dt':
+                break;
+
+                default:
+                break;
+            }
+
 
             // 显示 SVG 旗帜和格式化后的 Hex
+            // Display SVG flag and formatted Hex
             flagDiv.innerHTML = svgContent;
             const formattedColors = flagColors.map(color => `#${color}`).join(' ');
             formattedHexDiv.textContent = flagText ? `${formattedColors} ${flagText}` : formattedColors;
+
+            // 显示或隐藏下载按钮
+            // Show or hide the download button
+            const downloadBtn = document.getElementById("downloadBtn");
+            if (flagColors.length > 0) {
+                downloadBtn.style.display = "block";
+            } else {
+                downloadBtn.style.display = "none";
+            }
+
         }
 
+
         // 计算颜色亮度
+        // Calculate color brightness
         function calculateLuminance(hexColor) {
             const rgb = hexToRgb(hexColor);
             return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
         }
 
         // 将十六进制颜色转换为 RGB 格式
+        // Convert hexadecimal color to RGB format
         function hexToRgb(hex) {
             const bigint = parseInt(hex.slice(1), 16);
             const r = (bigint >> 16) & 255;
@@ -185,12 +289,14 @@ text-anchor="end" alignment-baseline="bottom" fill="${textColor}">${flagText || 
         }
 
         // 获取文本颜色
+        // Get text color
         function getTextColor(hexColor) {
             const luminance = calculateLuminance(hexColor);
             return luminance > 0.5 ? "#000000" : "#FFFFFF";
         }
 
         // 下载 SVG 函数
+        // Download SVG function
         function downloadSVG() {
             const hexInput = document.getElementById("hexInput").value.trim().replace(/^0x/i, ''); // Remove "0x" prefix
             const sanitizedHex = hexInput.replace(/[\s\-#+,:]/g, "").toUpperCase(); // Remove unwanted characters and convert to uppercase
@@ -209,6 +315,7 @@ text-anchor="end" alignment-baseline="bottom" fill="${textColor}">${flagText || 
         }
 
         // 多语言支持
+        // Multilingual support
         const languages = {
             en: {
                 enterHex: "Enter Hexadecimal:",
@@ -289,9 +396,10 @@ href="https://github.com/gledos/hex2flag" target="_blank">https://github.com/gle
         updateUI();
 
         // 延迟添加变色渐变功能
+        // Delayed addition of color transition effect
         setTimeout(function() {
             document.body.classList.add("transitioning");
-        }, 500); // 500毫秒延迟
+        }, 500); // 500 ms
     </script>
 </body>
 </html>
