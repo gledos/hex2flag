@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hex2flag (Free Speech Flag Generator)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        body.dark-mode {
+            background-color: #2b2b2b;
+            color: #ffffff;
+        }
+
+        body.dark-mode a {
+            color: #bb86fc;
+        }
+
+        body.transitioning {
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #languageSelector {
+            align-items: right;
+            margin-top: 10px;
+        }
+
+        @media only screen and (max-width: 600px) {
+            /* Styles for screens smaller than 600px */
+            body {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>hex2flag <span id="subtitle">(Free Speech Flag Generator)</span></h1>
+        <div>
+            <label for="languageSelector">🌐</label>
+            <select id="languageSelector" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="zh-CN">简体中文</option>
+                <option value="zh-TW">繁體中文</option>
+                <option value="ja">日本語</option>
+            </select>
+            <button onclick="toggleDarkMode()">🌞／🌑</button>
+        </div>
+    </div>
+
+    <label id="hexInputLabel" for="hexInput">${languages[currentLanguage].enterHex}</label>
+    <input type="text" id="hexInput" placeholder="Enter Hexadecimal" style="width: 300px;"
+        onkeypress="if(event.keyCode===13) formatHex()">
+
+    <button id="formatBtn" onclick="formatHex()">${languages[currentLanguage].formatBtn}</button>
+
+    <p id="formattedHex"></p>
+    <hr>
+    <div id="flag-container">
+        <div id="flag"></div>
+    </div>
+
+    <!-- 下载按钮 -->
+    <button id="downloadBtn" onclick="downloadSVG()">${languages[currentLanguage].downloadBtn}</button>
+
+    <!-- 添加简介 -->
+    <div id="introContainer">
+        <p id="intro">
+            <!-- This content will be dynamically replaced by JavaScript based on the selected language. -->
+        </p>
+    </div>
+
+    <script>
+        // 获取或设置暗色模式状态
+        function getDarkMode() {
+            return localStorage.getItem("darkMode") === "true";
+        }
+
+        function setDarkMode(value) {
+            localStorage.setItem("darkMode", value);
+        }
+
+        // 切换暗色模式
+        function toggleDarkMode() {
+            const body = document.body;
+            const darkMode = getDarkMode();
+            body.classList.toggle("dark-mode", !darkMode);
+            setDarkMode(!darkMode);
+        }
+
+        // 初始化页面时自动适配暗色模式
+        function autoAdjustDarkMode() {
+            const body = document.body;
+            const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const storedDarkMode = getDarkMode();
+
+            if (storedDarkMode !== null) {
+                body.classList.toggle("dark-mode", storedDarkMode);
+            } else {
+                body.classList.toggle("dark-mode", prefersDarkMode);
+                setDarkMode(prefersDarkMode);
+            }
+        }
+
+        // 在页面加载时调用 autoAdjustDarkMode
+        document.addEventListener("DOMContentLoaded", function () {
+            autoAdjustDarkMode();
+        });
+
+        // 格式化 Hex、生成 SVG 旗帜并显示
+        function formatHex() {
+            const hexInput = document.getElementById("hexInput").value.replace(/[\s\-#+,:]/g, "");
+            const formattedHexDiv = document.getElementById("formattedHex");
+            const flagDiv = document.getElementById("flag");
+            const flagColors = [];
+            let flagText = null;
+            let textColor = "#000000";  // 默认文本颜色为黑色
+
+            // 验证输入是否为有效的十六进制数字
+            if (!hexInput.match(/^0x[0-9A-Fa-f]+$/) && !hexInput.match(/^[0-9A-Fa-f]+$/)) {
+                alert("Please enter a valid hexadecimal number.");
+                return;
+            }
+
+            // 移除可能的 "0x" 前缀
+            const sanitizedHex = hexInput.startsWith("0x") ? hexInput.slice(2) : hexInput;
+
+            // 计算颜色块的数量和宽度
+            const numColors = sanitizedHex.length / 6;
+            const colorWidth = 300 / (Math.floor(sanitizedHex.length / 6));
+
+            // 提取颜色块和 flagText
+            for (let i = 0; i < numColors; i++) {
+                const startIdx = i * 6;
+                const endIdx = startIdx + 6;
+                const color = sanitizedHex.slice(startIdx, endIdx);
+
+                if (color.length === 6) {
+                    flagColors.push(color);
+                } else if (color.length > 0 && color.length < 6) {
+                    flagText = "+" + color;
+                }
+            }
+
+            // 计算最后一个颜色块的亮度
+            if (flagColors.length > 0) {
+                const lastColor = flagColors[flagColors.length - 1];
+                textColor = getTextColor(lastColor);
+            }
+
+            // 生成 SVG 内容
+            const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" height="200px" width="300px"
+id="freeSpeechFlag">${flagColors.map((color, index) => `<rect x="${index * colorWidth}" width="${colorWidth}px"
+height="200px" fill="#${color}"/>`).join('')}<text x="290" y="190" font-size="15" font-family="monospace"
+text-anchor="end" alignment-baseline="bottom" fill="${textColor}">${flagText || ""}</text></svg>`;
+
+            // 显示 SVG 旗帜和格式化后的 Hex
+            flagDiv.innerHTML = svgContent;
+            const formattedColors = flagColors.map(color => `#${color}`).join(' ');
+            formattedHexDiv.textContent = flagText ? `${formattedColors} ${flagText}` : formattedColors;
+        }
+
+        // 计算颜色亮度
+        function calculateLuminance(hexColor) {
+            const rgb = hexToRgb(hexColor);
+            return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+        }
+
+        // 将十六进制颜色转换为 RGB 格式
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return { r, g, b };
+        }
+
+        // 获取文本颜色
+        function getTextColor(hexColor) {
+            const luminance = calculateLuminance(hexColor);
+            return luminance > 0.5 ? "#000000" : "#FFFFFF";
+        }
+
+        // 下载 SVG 函数
+        function downloadSVG() {
+            const hexInput = document.getElementById("hexInput").value.trim().replace(/^0x/i, ''); // Remove "0x" prefix
+            const sanitizedHex = hexInput.replace(/[\s\-#+,:]/g, "").toUpperCase(); // Remove unwanted characters and convert to uppercase
+            const svgContent = document.getElementById("freeSpeechFlag").outerHTML;
+            const blob = new Blob([svgContent], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+
+            const fileName = `${sanitizedHex}_Flag.svg`;
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 多语言支持
+        const languages = {
+            en: {
+                enterHex: "Enter Hexadecimal:",
+                formatBtn: "Format",
+                downloadBtn: "Download SVG",
+                intro: `On May 1, 2007, the Digg social platform also faced actions related to the DMCA,
+initiating deletions and account removals related to the dissemination of keys. At that time,
+people continuously employed creative methods to disguise the keys, including the creation of
+flags using hexadecimal RGB numbers.</p><p>For example, transforming the key <code>09F911029D74E35BD84156C5635688C0</code> into
+<code>#09F911 #029D74 #E35BD8 #4156C5 #635688 +C0</code> formed the
+<a href="https://en.wikipedia.org/wiki/Free_Speech_Flag" target="_blank">Free Speech Flag</a>.</p>
+<p>The GitHubrepository for this hex2flag tool (Free Speech Flag Generator) is located at: https://github.com/...`
+            },
+            "zh-CN": {
+                enterHex: "输入十六进制:",
+                formatBtn: "生成",
+                downloadBtn: "下载 SVG",
+                intro: `2007年5月1日，Digg 社交平台也因为 DMCA，开始针对密钥传播删贴、删号。
+然后当时的人们不断使用创造性的方法来伪装密钥，其中就有使用十六进制数字的 RGB 制作的旗帜。</p><p>比如将密钥
+<code>09F911029D74E35BD84156C5635688C0</code> 改写为 <code>#09F911 #029D74 #E35BD8 #4156C5 #635688 +C0</code>，
+然后就组成了封面的 <a href="https://en.wikipedia.org/wiki/Free_Speech_Flag" target="_blank">言论自由之旗</a>。</p>
+<p>此 hex2flag 工具（言论自由旗帜生成器）的 GitHub 仓库地址为：https://github.com/...`
+            },
+            "zh-TW": {
+                enterHex: "輸入十六進制：",
+                formatBtn: "生成",
+                downloadBtn: "下載 SVG",
+                intro: `2007年5月1日，Digg 社交平台也因 DMCA 开始針對密鑰傳播進行刪帖、封號。
+當時人們不斷使用創造性的方法來偽裝密鑰，其中就有使用十六進制數字的 RGB 製作的旗幟。</p><p>例如，將密鑰
+<code>09F911029D74E35BD84156C5635688C0</code> 改寫為 <code>#09F911 #029D74 #E35BD8 #4156C5 #635688 +C0</code>，
+然後就組成了 <a href="https://en.wikipedia.org/wiki/Free_Speech_Flag" target="_blank">言論自由之旗</a>。</p>
+<p>此 hex2flag 工具（言論自由旗幟生成器）的 GitHub 倉庫地址為：https://github.com/...`
+            },
+            ja: { // japanese
+                enterHex: "16 進数を入力:",
+                formatBtn: "フォーマット",
+                downloadBtn: "SVG をダウンロード",
+                intro: `2007年5月1日、Digg ソーシャルプラットフォームも DMCA に関連して鍵の流布に対処し、
+削除やアカウントの削除が始まりました。その当時、人々は鍵を偽装するために創造的な方法を継続的に使用し、
+その中には 16 進数の RGB を使用して作成された旗も含まれています。</p><p>例えば、鍵
+</code>09F911029D74E35BD84156C5635688C0</code> を </code>#09F911 #029D74 #E35BD8 #4156C5 #635688 +C0</code>
+に変換することで、<a href="https://en.wikipedia.org/wiki/Free_Speech_Flag" target="_blank">Free Speech Flag</a>
+の表紙が形成されました。</p>
+<p>この hex2flag ツール（Free Speech Flag Generator）の GitHub リポジトリは次にあります：https://github.com/...`
+            },
+        };
+
+        // Variable to track the current language
+        let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
+
+        // Function to change the language
+        function changeLanguage() {
+            const newLanguage = document.getElementById("languageSelector").value;
+            document.documentElement.lang = newLanguage; // Set the lang attribute of the html tag
+            currentLanguage = newLanguage;
+            localStorage.setItem("selectedLanguage", currentLanguage);
+            updateUI();
+
+            // Reload the page
+            location.reload();
+        };
+
+        // Function to update the UI based on the current language
+        function updateUI() {
+            const language = languages[currentLanguage];
+
+            // Update HTML elements with language-specific text
+            document.getElementById("hexInputLabel").textContent = language.enterHex;
+            document.getElementById("formatBtn").textContent = language.formatBtn;
+            document.getElementById("downloadBtn").textContent = language.downloadBtn;
+            document.getElementById("intro").innerHTML = language.intro;
+            intro
+        };
+        updateUI();
+
+        // 延迟添加变色渐变功能
+        setTimeout(function() {
+            document.body.classList.add("transitioning");
+        }, 500); // 500毫秒延迟
+    </script>
+</body>
+</html>
